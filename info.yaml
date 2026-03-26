@@ -17,8 +17,8 @@ project:
 pinout:
   # Inputs
   ui[0]: ""
-  ui[1]: ""
-  ui[2]: ""
+  ui[1]: "k"
+  ui[2]: "j"
   ui[3]: ""
   ui[4]: ""
   ui[5]: ""
@@ -27,8 +27,8 @@ pinout:
 
   # Outputs
   uo[0]: ""
-  uo[1]: ""
-  uo[2]: ""
+  uo[1]: "k"
+  uo[2]: "j"
   uo[3]: ""
   uo[4]: ""
   uo[5]: ""
