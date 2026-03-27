@@ -4,6 +4,12 @@ on:
   push:
   workflow_dispatch:
 
+# Add permissions at workflow level for Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   gds:
     runs-on: ubuntu-24.04
@@ -17,19 +23,55 @@ jobs:
         uses: TinyTapeout/tt-gds-action@ttsky25b
         with:
           pdk: sky130A
+      
+      # Upload the GDS artifacts so other jobs can access them
+      - name: Upload GDS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: gds-artifacts
+          path: |
+            *.gds
+            *.mag
+            *.lef
+            *.spice
+            runs/
 
   precheck:
     needs: gds
     runs-on: ubuntu-24.04
     steps:
+      - name: Download GDS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: gds-artifacts
+          path: .
+      
       - name: Run Tiny Tapeout Precheck
         uses: TinyTapeout/tt-gds-action/precheck@ttsky25b
 
   viewer:
     needs: gds
     runs-on: ubuntu-24.04
-    permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Download GDS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: gds-artifacts
+          path: .
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
       - uses: TinyTapeout/tt-gds-action/viewer@ttsky25b
+      
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./gds_viewer
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
